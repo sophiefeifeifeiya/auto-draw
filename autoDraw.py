@@ -1,4 +1,4 @@
-#plan1: use pandas to load the file directly
+                                                                                                                                                                                              #plan1: use pandas to load the file directly
 import pandas
 import matplotlib.pyplot as plt
 import os
@@ -9,11 +9,35 @@ from pathlib import Path
 from pywintypes import com_error
 
 
-def draw_bar_chart(df, title, output_folder):
+def draw_bar_chart(df, title, output_folder):                                                                                                                                     
     '''
-    The first element with the green color, the second element with the red color
+   Draw a stacked bar chart: The first element with the green color, the second element with the yellow color
+    Extra highlight: let the maximum value among the second elements to red color
     '''
-    df.plot.bar(stacked=True, rot=0, color=['green','red'])
+    # find the index location of the maximum value of the second element
+    # like 0, 1, 2...
+    max_index = df.iloc[:, 1].idxmax()
+    max_index_location = df.index.get_loc(max_index)
+    fig, ax = plt.subplots()
+    # enlarge the figure size according to length of the index
+    fig.set_size_inches(2 * len(df.index), 5)
+    # set the label by the column name
+    ax.bar(range(len(df.index)), df.iloc[:, 0], color='green', label = df.columns[0])
+    # check whether any value of the second element is larger than 0
+    if df.iloc[max_index_location, 1] > 0:
+        ax.bar(max_index_location, df.iloc[max_index_location, 1], bottom=df.iloc[max_index_location, 0], color='red', label= df.columns[1]+" (maximum value)")
+    if df.iloc[:max_index_location, 1].max() > 0 or df.iloc[max_index_location+1:, 1].max() > 0:
+        ax.bar(range(max_index_location), df.iloc[:max_index_location, 1], bottom=df.iloc[:max_index_location, 0], color='yellow', label= df.columns[1])
+        ax.bar(range(max_index_location+1, len(df.index)), df.iloc[max_index_location+1:, 1], bottom=df.iloc[max_index_location+1:, 0], color='yellow')
+        
+    # show the label at the right top of the bar
+    ax.legend(loc='upper right')
+    # ax.bar(range(len(df.index)-1), df.iloc[:, 1], bottom=df.iloc[:, 0], color='yellow')
+    ax.bar
+    # set the x-axis by the index
+    ax.set_xticks(range(len(df.index)))
+    ax.set_xticklabels(df.index)
+    
     for i in range(len(df)):
         if df.iloc[i, 0] == 0:
             plt.text(i, df.iloc[i, 1]/2, int(df.iloc[i, 1]), ha='center', va='center')
@@ -146,11 +170,11 @@ def auto_draw(input_folder, output_folder, document_type):
 
 if __name__ == '__main__':
     # give the absolute path of the folder
-    input_folder = r'C:\Users\sophie\OneDrive\桌面\exe\example'
-    output_folder = r'C:\Users\sophie\OneDrive\桌面\exe\output'
+    input_folder = r'C:\Users\sophie\OneDrive\桌面\autoDraw\example'
+    output_folder = r'C:\Users\sophie\OneDrive\桌面\autoDraw\output'
     if not os.path.exists(output_folder):
         os.mkdir(output_folder)
-    # df_gap = extract_gap(input_folder)
+    df_gap = extract_gap(input_folder)
     df_link = extract_linked_request(input_folder)
-    # draw_bar_chart(df_gap,'Gap condition for every project about status in certain time period', output_folder)
+    draw_bar_chart(df_gap,'Gap condition for every project about status in certain time period', output_folder)
     draw_bar_chart(df_link, 'Link condition for every project about inlink in certain time period', output_folder)
