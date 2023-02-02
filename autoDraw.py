@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 from pywintypes import com_error
+import time
 
 
 def draw_bar_chart(df, title, output_folder):                                                                                                                                     
@@ -163,18 +164,20 @@ def auto_draw(input_folder, output_folder, document_type):
     df_gap = extract_gap(input_folder)
     df_link = extract_linked_request(input_folder)
     # draw the bar chart with document_type
-    draw_bar_chart(df_gap, f'Project {document_type} Report Status', output_folder)
-    draw_bar_chart(df_link, f'Project {document_type} Report Link', output_folder)
+    current_time = time.strftime("%Y-%m-%d", time.localtime())
+    draw_bar_chart(df_gap, f'{current_time} Project {document_type} Report Status', output_folder)
+    draw_bar_chart(df_link, f'{current_time} Project {document_type} Report Link', output_folder)
 
 
 
 if __name__ == '__main__':
-    # give the absolute path of the folder
+    # # give the absolute path of the folder
     input_folder = r'C:\Users\sophie\OneDrive\桌面\autoDraw\example'
     output_folder = r'C:\Users\sophie\OneDrive\桌面\autoDraw\output'
-    if not os.path.exists(output_folder):
-        os.mkdir(output_folder)
-    df_gap = extract_gap(input_folder)
-    df_link = extract_linked_request(input_folder)
-    draw_bar_chart(df_gap,'Gap condition for every project about status in certain time period', output_folder)
-    draw_bar_chart(df_link, 'Link condition for every project about inlink in certain time period', output_folder)
+    # if not os.path.exists(output_folder):
+    #     os.mkdir(output_folder)
+    # df_gap = extract_gap(input_folder)
+    # df_link = extract_linked_request(input_folder)
+    # draw_bar_chart(df_gap,'Gap condition for every project about status in certain time period', output_folder)
+    # draw_bar_chart(df_link, 'Link condition for every project about inlink in certain time period', output_folder)
+    auto_draw(input_folder, output_folder, 'status')

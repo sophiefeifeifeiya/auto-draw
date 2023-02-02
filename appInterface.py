@@ -29,8 +29,8 @@ def main_window():
         # [sg.MenubarCustom(menu_def, tearoff=False)],
               [sg.T("Input Folder:", s=15, justification="r"), sg.I(key="-IN-"), sg.FolderBrowse()],
               [sg.T("Output Folder:", s=15, justification="r"), sg.I(key="-OUT-"), sg.FolderBrowse()],
-              # create an option that let user to select, including 3 buttons, "Customer" "Software" "System"
-                [sg.T("Document Type:", s=15, justification="r"), sg.Radio("Customer", "RADIO1", default=True, key="-CUSTOMER-"), sg.Radio("Software", "RADIO1", key="-SOFTWARE-"), sg.Radio("System", "RADIO1", key="-SYSTEM-")],
+              # create an option that let user to select, including 3 buttons, "Customer"  "System" "Software"
+                [sg.T("Document Type:", s=15, justification="r"), sg.Radio("Customer", "RADIO1", default=True, key="-CUSTOMER-"), sg.Radio("System", "RADIO1", key="-SYSTEM-"), sg.Radio("Software", "RADIO1", key="-SOFTWARE-")],
               [sg.Exit(s=16, button_color="tomato"), sg.B("Auto-draw", s=16)],]
 
     window_title = settings["GUI"]["title"]
