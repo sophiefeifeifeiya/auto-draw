@@ -11,9 +11,13 @@ def is_valid_path(filepath):
  
 
 
-def draw(input_folder, output_folder, document_type):
-    
-    auto_draw(input_folder, output_folder,document_type)
+
+# draw that contains compared folder
+def draw(input_folder, output_folder, document_type, compared_folder=None):
+    if compared_folder is None:
+        auto_draw(input_folder, output_folder, document_type)
+    else:
+        auto_draw(input_folder,  output_folder, document_type, compared_folder)
     sg.popup_no_titlebar("Done! :)")
 
 
@@ -27,7 +31,9 @@ def main_window():
     # ------ GUI Definition ------ #
     layout = [
         # [sg.MenubarCustom(menu_def, tearoff=False)],
-              [sg.T("Input Folder:", s=15, justification="r"), sg.I(key="-IN-"), sg.FolderBrowse()],
+              [sg.T("Main data Folder:", s=15, justification="r"), sg.I(key="-IN-"), sg.FolderBrowse()],
+              # creata a new option to let user to select the folder to be compared (can be empty)
+              [sg.T("Compared Folder:", s=15, justification="r"), sg.I(key="-PRE-"), sg.FolderBrowse()],
               [sg.T("Output Folder:", s=15, justification="r"), sg.I(key="-OUT-"), sg.FolderBrowse()],
               # create an option that let user to select, including 3 buttons, "Customer"  "System" "Software"
                 [sg.T("Document Type:", s=15, justification="r"), sg.Radio("Customer", "RADIO1", default=True, key="-CUSTOMER-"), sg.Radio("System", "RADIO1", key="-SYSTEM-"), sg.Radio("Software", "RADIO1", key="-SOFTWARE-")],
@@ -47,7 +53,17 @@ def main_window():
         # if event in ("Command 1", "Command 2", "Command 3", "Command 4"):
         #     sg.popup_error("Not yet implemented")
         if event == "Auto-draw":
-            if (is_valid_path(values["-IN-"])) and (is_valid_path(values["-OUT-"])):
+            if (is_valid_path(values["-IN-"])) and (is_valid_path(values["-OUT-"])) and values["-PRE-"]:
+                if(is_valid_path(values["-PRE-"])):
+                    draw(
+                        input_folder=values["-IN-"],
+                        compared_folder=values["-PRE-"],
+                        output_folder=values["-OUT-"],
+                        # document
+                        document_type= "Customer" if values["-CUSTOMER-"] else "Software" if values["-SOFTWARE-"] else "System",
+                    )
+
+            elif(is_valid_path(values["-IN-"])) and (is_valid_path(values["-OUT-"])):
                 draw(
                     input_folder=values["-IN-"],
                     output_folder=values["-OUT-"],
