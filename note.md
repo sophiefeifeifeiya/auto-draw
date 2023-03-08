@@ -6,3 +6,6 @@ pywin32: modify the Pivot Table Fields
 https://miro.medium.com/max/640/1*YSW2nlePQAxSZiv-Q2hQTw.webp
 
 The format of the 8th sheet should be ag
+
+Excel details
+1. title should be = A1

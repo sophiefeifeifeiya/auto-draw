@@ -1,23 +1,28 @@
 from pathlib import Path  # core python module
 import pandas as pd  # pip install pandas openpyxl
 import PySimpleGUI as sg  # pip install pysimplegui
-from autoDraw import auto_draw
+from autoDrawCOEM import auto_draw_coem
+from autoDrawProject import auto_draw_project
 
 def is_valid_path(filepath):
     if filepath and Path(filepath).exists():
-        return True
+        return True   
     sg.popup_error("Filepath not correct")
     return False
  
 
-
-
 # draw that contains compared folder
-def draw(input_folder, output_folder, document_type, compared_folder=None):
-    if compared_folder is None:
-        auto_draw(input_folder, output_folder, document_type)
-    else:
-        auto_draw(input_folder,  output_folder, document_type, compared_folder)
+def draw(input_folder, output_folder, document_type, product, image_type, compared_folder=None):
+    if image_type == "COEM":
+        if compared_folder is None:
+            auto_draw_coem(input_folder, output_folder, document_type, product)
+        else:
+            auto_draw_coem(input_folder,  output_folder, document_type, product,  compared_folder)
+    elif image_type == "Project":
+        if compared_folder is None:
+            auto_draw_project(input_folder, output_folder, document_type, product)
+        else:
+            auto_draw_project(input_folder, output_folder, document_type, product,  compared_folder)
     sg.popup_no_titlebar("Done! :)")
 
 
@@ -36,7 +41,10 @@ def main_window():
               [sg.T("Compared Folder:", s=15, justification="r"), sg.I(key="-PRE-"), sg.FolderBrowse()],
               [sg.T("Output Folder:", s=15, justification="r"), sg.I(key="-OUT-"), sg.FolderBrowse()],
               # create an option that let user to select, including 3 buttons, "Customer"  "System" "Software"
-                [sg.T("Document Type:", s=15, justification="r"), sg.Radio("Customer", "RADIO1", default=True, key="-CUSTOMER-"), sg.Radio("System", "RADIO1", key="-SYSTEM-"), sg.Radio("Software", "RADIO1", key="-SOFTWARE-")],
+              [sg.T("Document Type:", s=15, justification="r"), sg.Radio("Customer", "RADIO1", default=True, key="-CUSTOMER-"), sg.Radio("System", "RADIO1", key="-SYSTEM-"), sg.Radio("Software", "RADIO1", key="-SOFTWARE-")],
+              [sg.T("Product:", s=15, justification="r"), sg.Radio("FR", "RADIO2", default=True, key="-FR-"), sg.Radio("CR", "RADIO2", key="-CR-"), sg.Radio("MPC", "RADIO2", key="-MPC-")],
+              # create an option to select the type of images, including "COEM", "Project" 
+              [sg.T("Image Type:", s=15, justification="r"), sg.Radio("COEM", "RADIO3", default=True, key="-COEM-"), sg.Radio("Project", "RADIO3", key="-PROJECT-")],
               [sg.Exit(s=16, button_color="tomato"), sg.B("Auto-draw", s=16)],]
 
     window_title = settings["GUI"]["title"]
@@ -61,6 +69,8 @@ def main_window():
                         output_folder=values["-OUT-"],
                         # document
                         document_type= "Customer" if values["-CUSTOMER-"] else "Software" if values["-SOFTWARE-"] else "System",
+                        product= "FR" if values["-FR-"] else "CR" if values["-CR-"] else "MPC",
+                        image_type= "COEM" if values["-COEM-"] else "Project",
                     )
 
             elif(is_valid_path(values["-IN-"])) and (is_valid_path(values["-OUT-"])):
@@ -69,6 +79,8 @@ def main_window():
                     output_folder=values["-OUT-"],
                     # document
                     document_type= "Customer" if values["-CUSTOMER-"] else "Software" if values["-SOFTWARE-"] else "System",
+                    product= "FR" if values["-FR-"] else "CR" if values["-CR-"] else "MPC",
+                    image_type= "COEM" if values["-COEM-"] else "Project",
                 )
     window.close()
 
