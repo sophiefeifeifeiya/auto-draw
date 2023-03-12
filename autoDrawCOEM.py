@@ -14,6 +14,7 @@ import os
 
 
 def exchange_max_location(df,df_comp=None):
+    """Exchange the max value location with the last row"""
     df["name"] = df.index
     df = df.reset_index(drop=True)
     max_index = df.iloc[:, 1].idxmax()
@@ -27,7 +28,10 @@ def exchange_max_location(df,df_comp=None):
         df_comp = df_comp.reset_index(drop=True)
         temp = df_comp.iloc[max_index_location].copy()
         df_comp.iloc[max_index_location] = df_comp.iloc[-1]
-        df_comp.iloc[-1] = tem
+        df_comp.iloc[-1] = temp
+        return df, df_comp
+    else:
+        return df
 
 
 
@@ -43,8 +47,6 @@ def draw_bar_and_line_chart(df, title, output_folder, df_comp=None):
         ax1.bar(len(df.index)-1, df.iloc[-1, 1], bottom=df.iloc[-1, 0], color='red', label= "Max Gap")
     if df.iloc[:len(df.index)-1, 1].max() > 0:
         ax1.bar(range(len(df.index)-1), df.iloc[:len(df.index)-1, 1],  bottom=df.iloc[:len(df.index)-1, 0], color='yellow', label="Existing Gap")
-
-
     
     # set the x-axis by the "name"
     ax1.set_xticks(range(len(df.index)))
@@ -62,7 +64,7 @@ def draw_bar_and_line_chart(df, title, output_folder, df_comp=None):
 
     # Add a second y-axis (on right) and draw a line chart if df_comp is not None
     if df_comp is not None:
-        df_diff= df_comp.iloc[:,1]-df.iloc[:,1]
+        df_diff=df.iloc[:,1] - df_comp.iloc[:,1]
         df_diff_percent=df_diff.copy()
         # if the element of df_diff is 0, leave this element as 0. Otherwise, calculate the percentage
         for i in range(len(df_diff_percent)):
@@ -70,29 +72,33 @@ def draw_bar_and_line_chart(df, title, output_folder, df_comp=None):
                 df_diff_percent.iloc[i] = df_diff_percent.iloc[i]/df.iloc[i,1]
         df_diff_percent = df_diff_percent*100
         df_diff_percent = df_diff_percent.round(2)
-        # set 0 as the center point and draw the data point of df_diff without line
-        # the format of data point is the star
-        ax2 = ax1.twinx()
-        ax2.plot(range(len(df_diff_percent)), df_diff_percent, color='blue', marker='*', linestyle='None', label="Trend")
-        # set the y-axis as percentage format, % sign and 2 decimal
-        ax2.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, loc: "{:.0f}%".format(x)))
-        # concatenate ax1 and ax2's label
-        lines, labels = ax1.get_legend_handles_labels()
-        lines2, labels2 = ax2.get_legend_handles_labels()
-        # set legend outside the figure
-        
-        for i in range(len(df)):
-            plt.text(i, df_diff_percent.iloc[i], str(df_diff_percent.iloc[i])+"%", ha='center', va='bottom')
 
+        # increase the length of top of the ax1
+        ax1.set_ylim(top=(df.iloc[:, 0].max() + df.iloc[:, 1].max())*1.1)
+
+
+        # add text above the stacked bar chart to show the percentage of the difference
+        for i in range(len(df_diff_percent)):
+            plt.text(i, df.iloc[i, 0] + df.iloc[i, 1]+(df.iloc[:, 0].max() + df.iloc[:, 1].max())*0.1, str(df_diff_percent.iloc[i]) + "%", ha='center', va='center')
+
+       
         # let the legend and title will not be cut off 
-        ax1.legend(lines2 + lines, labels2 + labels, fontsize='small', loc = (1.05, 0.8))
         fig.set_figwidth(2+len(df)*1.5)
         # plt.tight_layout()
         # title will not be cut off
-        if len(df)<=5:
-            plt.subplots_adjust(top=0.9, bottom=0.2, right=0.6)
+        if len(df)<=8:
+            ax1.legend(fontsize='small', loc = (1.20, 0.8))
+            # add comments to the right of the chart, which is "(COEM, Project Amount)"
+            plt.text(len(df_diff_percent), 1000, "(COEM, Project Amount)", fontsize='small')
+            plt.subplots_adjust(top=0.8, bottom=0.4, right=0.6)
         else:
-            plt.subplots_adjust(top=0.9, bottom=0.2)
+            ax1.legend(fontsize='small', loc = (1.05, 0.8))
+            plt.text(len(df_diff_percent)*1.05, (df.iloc[:, 0].max() + df.iloc[:, 1].max())*0.6, "(COEM, Project Amount)", fontsize='small')
+            plt.subplots_adjust(top=0.9, bottom=0.3, right = 0.8)
+        
+    else:
+        # draw the ax1 only
+        ax1.legend(fontsize='small', loc = (1.05, 0.8))
 
 
     # Set the chart title
@@ -203,7 +209,7 @@ def extract_coem_linked_request(input_folder):
             print("problem", file_path, e)
             excel.Application.Quit() 
         time.sleep(3)
-    # convert the dict to dataframe, the key is the index
+    # convert the dict to dataframe, the key is th e index
     df = pandas.concat(linked_request_data)
     # set the first column "Number of requiredlink", the second column "Number of requirednotlink"
     df.index = df.index.map(lambda x: x[0])
@@ -212,27 +218,27 @@ def extract_coem_linked_request(input_folder):
 
 # auto_draw that contains compared_folder
 def auto_draw_coem(input_folder,  output_folder, document_type, product, compared_folder=None):
-    # df_gap = pd.read_excel('output\df_gap.xlsx', index_col=[0, 1])
-    # df_link = pd.read_excel('output\df_link.xlsx', index_col=[0, 1])
+    df_gap = pd.read_excel('output\df_gap.xlsx', index_col=[0])
+    df_link = pd.read_excel('output\df_link.xlsx', index_col=[0])
 
-    df_gap = extract_coem_gap(input_folder)
-    df_link = extract_coem_linked_request(input_folder)
+    # df_gap = extract_coem_gap(input_folder)
+    # df_link = extract_coem_linked_request(input_folder)
     # draw the bar chart with document_type
     current_time = time.strftime("%Y-%m-%d", time.localtime())
     if compared_folder==None:
-        exchange_max_location(df_gap)
-        exchange_max_location(df_link)
-        draw_bar_and_line_chart(df_gap, f'{current_time} {product} Project {document_type} Report Status', output_folder)
-        draw_bar_and_line_chart(df_link, f'{current_time} {product} Project {document_type} Report Link', output_folder)
+        # df_gap=exchange_max_location(df_gap)
+        # df_link = exchange_max_location(df_link)
+        draw_bar_and_line_chart(df_gap, f'{current_time}_{product}_Project_{document_type} Report_Status', output_folder)
+        draw_bar_and_line_chart(df_link, f'{current_time}_{product}_Project_{document_type} Report_Link', output_folder)
     else:
-        df_gap_comp = extract_coem_gap(compared_folder)
-        df_link_comp = extract_coem_linked_request(compared_folder)
-        # df_gap_comp = pd.read_excel('output\df_gap_comp.xlsx', index_col=[0, 1])
-        # df_link_comp = pd.read_excel('output\df_link_comp.xlsx', index_col=[0, 1])
-        exchange_max_location(df_gap, df_gap_comp)
-        exchange_max_location(df_link, df_link_comp)
-        draw_bar_and_line_chart(df_gap,  f'{current_time} {product} Project {document_type} Report Status', output_folder, df_gap_comp)
-        draw_bar_and_line_chart(df_link,  f'{current_time} {product} Project {document_type} Report Link', output_folder, df_link_comp)
+        df_gap_comp = pd.read_excel('output\df_gap_comp.xlsx', index_col=[0])
+        df_link_comp = pd.read_excel('output\df_link_comp.xlsx', index_col=[0])
+        # df_gap_comp = extract_coem_gap(compared_folder)
+        # df_link_comp = extract_coem_linked_request(compared_folder)
+        # df_gap, df_gap_comp = exchange_max_location(df_gap, df_gap_comp)
+        # df_link, df_link_comp = exchange_max_location(df_link, df_link_comp)
+        draw_bar_and_line_chart(df_gap,  f'{current_time}_{product}_Project_{document_type} Report_Status', output_folder, df_gap_comp)
+        draw_bar_and_line_chart(df_link,  f'{current_time}_{product}_Project_{document_type} Report_Link', output_folder, df_link_comp)
     # #     save the dataframe to excel
     # df_gap.to_excel(os.path.join(output_folder, 'df_gap.xlsx'))
     # df_link.to_excel(os.path.join(output_folder, 'df_link.xlsx'))

@@ -62,13 +62,7 @@ def draw_bar_and_line_chart(df, title, output_folder, df_comp=None):
 
     # Add a second y-axis (on right) and draw a line chart if df_comp is not None
     if df_comp is not None:
-        # if the corresponding element in df does not exist in df_comp, set the value as None and do not draw the line
-        # if the corresponding element in df_comp does not exist in df, remove this row
-        # calculate the difference between df and df_comp
-        # print(df_comp.iloc[:,1])
-        # print(df.iloc[:,1])
-
-        df_diff= df_comp.iloc[:,1]-df.iloc[:,1]
+        df_diff=df.iloc[:,1] - df_comp.iloc[:,1]
         df_diff_percent=df_diff.copy()
         # if the element of df_diff is 0, leave this element as 0. Otherwise, calculate the percentage
         for i in range(len(df_diff_percent)):
@@ -76,30 +70,28 @@ def draw_bar_and_line_chart(df, title, output_folder, df_comp=None):
                 df_diff_percent.iloc[i] = df_diff_percent.iloc[i]/df.iloc[i,1]
         df_diff_percent = df_diff_percent*100
         df_diff_percent = df_diff_percent.round(2)
-        # set 0 as the center point and draw the data point of df_diff without line
-        # the format of data point is the star
-        ax2 = ax1.twinx()
-        ax2.plot(range(len(df_diff_percent)), df_diff_percent, color='blue', marker='*', linestyle='None', label="Trend")
-        # set the y-axis as percentage format, % sign and 2 decimal
-        ax2.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, loc: "{:.0f}%".format(x)))
-        # concatenate ax1 and ax2's label
-        lines, labels = ax1.get_legend_handles_labels()
-        lines2, labels2 = ax2.get_legend_handles_labels()
-        # change the position of label to avoid the label being cut off
 
-        for i in range(len(df)):
-            plt.text(i, df_diff_percent.iloc[i], str(df_diff_percent.iloc[i])+"%", ha='center', va='bottom')
+        # increase the length of top of the ax1
+        ax1.set_ylim(top=(df.iloc[:, 0].max() + df.iloc[:, 1].max())*1.1 )
 
+
+        # add text above the stacked bar chart to show the percentage of the difference
+        for i in range(len(df_diff_percent)):
+            plt.text(i, df.iloc[i, 0] + df.iloc[i, 1]+(df.iloc[:, 0].max() + df.iloc[:, 1].max())*0.1, str(df_diff_percent.iloc[i]) + "%", ha='center', va='center')
+
+       
         # let the legend and title will not be cut off 
         fig.set_figwidth(2+len(df)*1.5)
         # plt.tight_layout()
         # title will not be cut off
         if len(df)<=8:
-            ax1.legend(lines2 + lines, labels2 + labels, fontsize='small', loc = (1.20, 0.8))
+        
+            ax1.legend(fontsize='small', loc = (1.20, 0.8))
             plt.subplots_adjust(top=0.8, bottom=0.4, right=0.6)
         else:
-            ax1.legend(lines2 + lines, labels2 + labels, fontsize='small', loc = (1.05, 0.8))
+            ax1.legend(fontsize='small', loc = (1.05, 0.8))
             plt.subplots_adjust(top=0.9, bottom=0.3, right = 0.8)
+        
     else:
         # draw the ax1 only
         ax1.legend(fontsize='small', loc = (1.05, 0.8))
@@ -156,8 +148,6 @@ def extract_project_gap(input_folder):
     df = df[['Number of fixed', 'Number of gap']]
     # set the index by the first element of the index
     df.index = df.index.map(lambda x: x[0])
-    # rename the index name by adding the file_number
-    df.index = df.index.map(lambda x: (x, file_number[x]))
     return df
 
 def extract_project_linked_request(input_folder):
@@ -223,7 +213,6 @@ def extract_project_linked_request(input_folder):
     df = pandas.concat(linked_request_data)
     # set the first column "Number of requiredlink", the second column "Number of requirednotlink"
     df.index = df.index.map(lambda x: x[0])
-    df.index = df.index.map(lambda x: (x, file_number[x]))
     return df
 
 def extract_coem_name(input_folder):
